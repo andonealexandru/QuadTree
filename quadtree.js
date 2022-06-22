@@ -1,7 +1,8 @@
 class Point {
-  constructor(x, y) {
+  constructor(x, y, userData) {
     this.x = x;
     this.y = y;
+    this.userData = userData;
   }
 }
 
@@ -14,11 +15,18 @@ class Rectangle {
   }
 
   contains(point) {
-    return (point.x >= this.x - this.w &&
-            point.x <= this.x + this.w &&
-            point.y >= this.y - this.h &&
-            point.y <= this.y + this.h
+    return (point.x > this.x - this.w &&
+            point.x < this.x + this.w &&
+            point.y > this.y - this.h &&
+            point.y < this.y + this.h
            );
+  }
+
+  intersects(range) {
+    return !(range.x - range.w > this.x + this.w ||
+        range.x + range.w < this.x - this.w ||
+        range.y - range.h > this.y + this.h ||
+        range.y + range.h < this.y - this.h);
   }
 }
 
@@ -84,6 +92,27 @@ class QuadTree {
       this.southeast.insert(point);
       this.southwest.insert(point);
     }
+  }
+
+  query(range, found) {
+    if (!this.boundary.intersects(range)) {
+      // empty array
+      return;
+    }
+
+    for (let p of this.points) {
+      if (range.contains(p)) {
+        found.push(p);
+      }
+    }
+
+    if (this.divided) {
+      this.northwest.query(range, found);
+      this.northeast.query(range, found);
+      this.southwest.query(range, found);
+      this.southeast.query(range, found);
+    }
+
 
   }
 
