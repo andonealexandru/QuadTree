@@ -1,28 +1,56 @@
-let qtree;
+let particles = [];
 
 function setup() {
-  createCanvas(400, 400);
+  createCanvas(1000, 800);
 
-  let boundary = new Rectangle(200, 200, 200, 200);
-  qtree = new QuadTree(boundary, 4);
 
-  console.log(qtree);
 
-  // for (let i = 0; i < 100; i++) {
-  //   let p = new Point(random(width), random(height));
-  //
-  //   qt.insert(p);
+  // for (let i = 0; i < 500; i++) {
+  //   particles[i] = new Particle(random(width), random(height));
   // }
-  //
-  // background(0);
-  // qt.show();
 }
 
 function draw() {
   if (mouseIsPressed) {
-    let m = new Point(mouseX, mouseY);
-    qtree.insert(m);
+    let newParticle = new Particle(mouseX, mouseY);
+    particles.push(newParticle);
   }
   background(0);
+
+  let boundary = new Rectangle(width / 2, height / 2, width, height);
+  let qtree = new QuadTree(boundary, 4);
+
+  for (let p of particles) {
+
+    let point = new Point(p.x, p.y, p);
+    qtree.insert(point);
+
+    p.move();
+    p.render();
+    p.setHighlight(false);
+  }
+
   qtree.show();
+
+  // inefficient way
+  // for (let p of particles) {
+  //   for (let other of particles) {
+  //     if (p !== other && p.intersects(other)) {
+  //       p.setHighlight(true);
+  //     }
+  //   }
+  // }
+
+  // efficient way
+  for (let p of particles) {
+    let range = new Rectangle(p.x, p.y, p.r*2, p.r*2);
+    let points = [];
+    qtree.query(range, points);
+    for (let point of points) {
+      let other = point.userData;
+      if (p !== other && p.intersects(other)) {
+        p.setHighlight(true);
+      }
+    }
+  }
 }
